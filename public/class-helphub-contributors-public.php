@@ -70,7 +70,7 @@ class HelpHub_Contributors_Public {
 	 * @return string           Returns post content with appended contributors list
 	 */
 	public function show_contributors( $content ) {
-		$output = $content;
+		$contributors_markup = '';
 
 		$meta = get_post_meta( get_the_ID(), 'helphub_contributors' );
 
@@ -105,12 +105,22 @@ class HelpHub_Contributors_Public {
 						$data = apply_filters( 'helphub_contributors_user_data', $data, $contributor_object );
 
 						$contributor_url      = 'https://profiles.wordpress.org/' . $data['user_nicename'];
-						$contributor_gravatar = '<img src="' . esc_url( get_avatar_url( $data['user_email'] ) ) . '" />';
+						$contributor_gravatar = '<img src="' . esc_url( get_avatar_url( $data['user_email'], array( 'size' => 40 ) ) ) . '" />';
 						$contributor_name     = '<span>' . esc_html( $data['display_name'] ) . '</span>';
 						$contributor_username = '&#64;' . esc_html( $data['user_nicename'] );
 
+						/**
+						 * Filters contributor text.
+						 *
+						 * @since 1.0.0
+						 *
+						 * @param string $contributor_name      Contributor display_name.
+						 * @param string $contributor_username  Contributor wp.org username.
+						 */
+						$contributor_text = apply_filters( 'helphub_contributors_contributor_text', '<p>' . $contributor_name . $contributor_username . '</p>' );
+
 						// Build the link
-						$contributor_link = '<a href="' . esc_url( $contributor_url ) . '">' . $contributor_gravatar . $contributor_name . $contributor_username . '</a>';
+						$contributor_link = '<a href="' . esc_url( $contributor_url ) . '">' . $contributor_gravatar . $contributor_text . '</a>';
 
 						/**
 						 * Filters contributor link.
@@ -120,10 +130,9 @@ class HelpHub_Contributors_Public {
 						 * @param string $contributor_link      Contributor link markup.
 						 * @param string $contributor_url       Contributor wp.org profile URL.
 						 * @param string $contributor_gravatar  Contributor gravatar markup.
-						 * @param string $contributor_name      Contributor display_name.
-						 * @param string $contributor_username  Contributor wp.org username.
+						 * @param string $contributor_text      Contributor wp.org display_name and username.
 						 */
-						$contributor_link = apply_filters( 'helphub_contributors_contributor_link', $contributor_link, $contributor_url, $contributor_gravatar, $contributor_name, $contributor_username );
+						$contributor_link = apply_filters( 'helphub_contributors_contributor_link', $contributor_link, $contributor_url, $contributor_gravatar, $contributor_text );
 
 						$contributor_list_item = '<li>' . $contributor_link . '</li>';
 
@@ -141,14 +150,14 @@ class HelpHub_Contributors_Public {
 					else :
 
 						// Display message if no user is found with provided username.
-						$contributors_list_items .= '<li>' . sprintf( __( '%s does not seem to be a valid username.', $this->helphub_contributors ), '<strong>' . $contributor . '</strong>' ) . '</li>';
+						$contributors_list_items .= '<li class="contributor-not-found"><p>' . sprintf( __( '%s is not a valid username.', $this->helphub_contributors ), '<strong>' . $contributor . '</strong>' ) . '</p></li>';
 
 					endif; // is_object( $contributor_object )
 
 				endforeach; // $contributors as $contributor
 
 				$contributors_heading = '<h5>' . esc_html__( 'Contributors', $this->helphub_contributors ) . '</h5>';
-				$contributors_list    = '<ul>' . $contributors_list_items . '</ul>';
+				$contributors_list    = '<ul class="contirbutors-list">' . $contributors_list_items . '</ul>';
 
 				// Build the markup
 				$contributors_markup = '<div class="contirbutors-list-wrap">' . $contributors_heading . $contributors_list . '</div>';
@@ -165,12 +174,21 @@ class HelpHub_Contributors_Public {
 				 */
 				$contributors_markup = apply_filters( 'helphub_contributors', $contributors_markup, $contributors_heading, $contributors_list, $contributors_list_items );
 
-				$output .= $contributors_markup;
-
 			endif; // is_array( $contributors ) && ! empty( $contributors )
 
 		endif; // is_array( $meta ) && ! empty( $meta )
 
-		return $output;
+		$output = $content . $contributors_markup;
+
+		/**
+		 * Filters complete output, post content and contributors markup.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $output              Complete output, post content and contributors markup.
+		 * @param string $content             Post content, accessed via 'the_content' filter.
+		 * @param string $contributors_markup Contributors markup, appened to post content.
+		 */
+		return apply_filters( 'helphub_contributors_output', $output, $content, $contributors_markup );
 	}
 }
