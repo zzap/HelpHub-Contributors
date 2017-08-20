@@ -10,7 +10,7 @@ var $ = window.jQuery;
 // ON DOCUMENT READY
 $(document).ready(function() {
 
-	$( "#helphub-contributors" ).select2({
+	$( "#helphub-contributors" ).selectWoo({
 		tags: true
 	});
 

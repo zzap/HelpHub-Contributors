@@ -70,7 +70,7 @@ class HelpHub_Contributors_Public {
 	 * @return string           Returns post content with appended contributors list
 	 */
 	public function show_contributors( $content ) {
-		$output = $content;
+		$contributors_markup = '';
 
 		$meta = get_post_meta( get_the_ID(), 'helphub_contributors' );
 
@@ -165,12 +165,21 @@ class HelpHub_Contributors_Public {
 				 */
 				$contributors_markup = apply_filters( 'helphub_contributors', $contributors_markup, $contributors_heading, $contributors_list, $contributors_list_items );
 
-				$output .= $contributors_markup;
-
 			endif; // is_array( $contributors ) && ! empty( $contributors )
 
 		endif; // is_array( $meta ) && ! empty( $meta )
 
-		return $output;
+		$output = $content . $contributors_markup;
+
+		/**
+		 * Filters complete output, post content and contributors markup.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $output              Complete output, post content and contributors markup.
+		 * @param string $content             Post content, accessed via 'the_content' filter.
+		 * @param string $contributors_markup Contributors markup, appened to post content.
+		 */
+		return apply_filters( 'helphub_contributors_output', $output, $content, $contributors_markup );
 	}
 }
